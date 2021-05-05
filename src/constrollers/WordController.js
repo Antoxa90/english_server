@@ -4,12 +4,13 @@ const { wordsSchema, mapWordsModel } = require('../models/WordsSchema');
 const { connection } = require('../dbConnection');
 const errorHandler = require('../utils/errorHandler');
 const { parseWord } = require('../..');
+const requireAuth = require('../utils/requireAuth');
 
 const WordsModel = connection.addScheme(wordsSchema, 'Words', { plugins: [mongoosePaginate] });
 
 module.exports = (app) => {
   // Get and search words with pagination
-  app.get('/api/words', (req, res) => {
+  app.get('/api/words', requireAuth, (req, res) => {
     const { page = 1, limit = 10, search = '' } = req.query;
     let filter = {};
     if (search) {
@@ -35,7 +36,7 @@ module.exports = (app) => {
   });
 
   // Get word by id
-  app.get('/api/words/:id', (req, res) => {
+  app.get('/api/words/:id', requireAuth, (req, res) => {
     const id = req.params.id;
     WordsModel.find({ _id: id }, (error, data) => {
       if (error) {
@@ -48,7 +49,7 @@ module.exports = (app) => {
   });
 
   // Get words by array of ids
-  app.post('/api/pack-words', async (req, res) => {
+  app.post('/api/pack-words', requireAuth, async (req, res) => {
     const ids = req.body.ids;
     const dbIds = ids.map(mongoose.Types.ObjectId);
     let filter = { '_id': { $in: dbIds } };
@@ -67,7 +68,7 @@ module.exports = (app) => {
   });
 
   // Update word by id
-  app.put('/api/words/:id', (req, res) => {
+  app.put('/api/words/:id', requireAuth, (req, res) => {
     const newModel = req.body;
     WordsModel.updateOne({ _id: req.params.id }, { ...newModel }, (error, data) => {
       if (error) {
@@ -80,7 +81,7 @@ module.exports = (app) => {
   })
 
   // Delete word by id
-  app.delete('/api/words/:id', (req, res) => {
+  app.delete('/api/words/:id', requireAuth, (req, res) => {
     WordsModel.deleteOne({ _id: req.params.id }, (error, data) => {
       if (error) {
         return errorHandler(`Can\'t delete row with id ${req.params.id})`, 'Error - delete /api/words/:id');
@@ -92,7 +93,7 @@ module.exports = (app) => {
   });
 
   // Create a new word
-  app.post('/api/word', async (req, res) => {
+  app.post('/api/word', requireAuth, async (req, res) => {
     const word = req.body.word;
     const newModel = { ...(await parseWord(word)) };
     if (!newModel.word) {

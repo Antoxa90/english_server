@@ -5,6 +5,7 @@ const { connection } = require('../dbConnection');
 const { usersSchema, mapUsersModel } = require('../models/UserSchema');
 const AuthService = require('../services/AuthService');
 const errorHandler = require('../utils/errorHandler');
+const requireAuth = require('../utils/requireAuth');
 
 const UsersModel = connection.addScheme(usersSchema, 'Users');
 
@@ -68,7 +69,7 @@ module.exports = (app) => {
   });
 
   // Get user info
-  app.get('/api/users/:username', async (req, res) => {
+  app.get('/api/users/:username', requireAuth, async (req, res) => {
     const username = req.params.username;
     try {
       const data = await UsersModel.findOne({ username });
@@ -78,7 +79,7 @@ module.exports = (app) => {
     }
   });
 
-  app.put('/api/users/:username', async (req, res) => {
+  app.put('/api/users/:username', requireAuth, async (req, res) => {
     const username = req.params.username;
     const packs = req.body.packs;
     try {
