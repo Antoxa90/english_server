@@ -51,12 +51,16 @@ module.exports = (app) => {
   app.post('/api/pack-words', async (req, res) => {
     const ids = req.body.ids;
     const dbIds = ids.map(mongoose.Types.ObjectId);
-    WordsModel.find({ '_id': { $in: dbIds } }, (error, data) => {
+    let filter = { '_id': { $in: dbIds } };
+    if (req.body.search) {
+      filter = { ...filter, word: new RegExp(`^${req.body.search}`, 'i') };
+    }
+
+    WordsModel.find({ ...filter }, (error, data) => {
       if (error) {
         return errorHandler(`Can\'t get words by array of ids`, 'Error - post /api/pack-words');
       }
 
-      console.log(data);
       const mappedData = data.map(mapWordsModel);
       return res.status(200).json(mappedData);
     })
