@@ -9,6 +9,8 @@ const brokenWords = {};
 
 const wrongWords = [];
 
+const timeout = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const getData = async (page, word) => {
   if (word in brokenWords) {
     word = brokenWords[word];
@@ -22,9 +24,18 @@ const getData = async (page, word) => {
 
   await page.click('.cdo-search-button');
   await page.waitForNavigation();
-  await page.waitForSelector('.def');
+  const element = await Promise.race([
+    page.waitForSelector('.def'),
+    timeout(3000)
+  ]);
+  if (!element) {
+    return {
+      word: null
+    };
+  }
 
   const result = await page.evaluate(() => {
+    document.querySelector('#searchword').value = '';
     const definition = document.querySelector('.def').innerText;
     const examples = document.querySelectorAll('.pr.dictionary:first-child .entry:first-child .dexamp') || [];
     const type = document.querySelector('.pos.dpos') && document.querySelector('.pos.dpos').innerText;
@@ -72,12 +83,12 @@ const parseWord = async (word) => {
     await page.goto('https://dictionary.cambridge.org/');
     await page.waitFor(1000);
     await page.click('body > div.pr.pg-h.fon > div.bh.pr.lbt.lb-ch.lmb-15.z2.pg-hh > div.lmax.lch1 > div > div > div.hflx1.lpb-25.lp-m_t-10.lp-l_b-0.lp-l_t-15.lml--10.lmr--10.lm-s-auto > form > div.hcb.lpt-2 > div > div > div > span:nth-child(1) > span');
-    result = await scrape(page, [word]);
+    result = await scrape(page, [].concat(word));
   } catch (error) {
     console.log(error);
   } finally {
     browser.close();
-    return result[0];
+    return result;
   }
 }
 

@@ -57,7 +57,7 @@ module.exports = (app) => {
       filter = { ...filter, word: new RegExp(`^${req.body.search}`, 'i') };
     }
 
-    WordsModel.find({ ...filter }, (error, data) => {
+    WordsModel.find({ ...filter }, null, { sort: { word: 1 } }, (error, data) => {
       if (error) {
         return errorHandler(`Can\'t get words by array of ids`, 'Error - post /api/pack-words');
       }
@@ -95,7 +95,7 @@ module.exports = (app) => {
   // Create a new word
   app.post('/api/word', requireAuth, async (req, res) => {
     const word = req.body.word;
-    const newModel = { ...(await parseWord(word)) };
+    const newModel = { ...(await parseWord(word))[0] };
     if (!newModel.word) {
       return res.status(400).json({ message: `Can\'t parse word ${word}` });
     }
