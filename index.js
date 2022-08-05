@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const mongoosePaginate = require('mongoose-paginate-v2');
 
 const Schema = mongoose.Schema;
-mongoose.connect('mongodb://localhost:27018/englishdb', { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect('mongodb://localhost:27017/englishdb', { useNewUrlParser: true, useUnifiedTopology: true });
 
 const brokenWords = {};
 
